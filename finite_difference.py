@@ -5,67 +5,80 @@ from jax import vmap, jit
 import jax
 import numpy as np
 import time
-from utils import calculate_cfl
+from utils import calculate_cfl, plot_heatmap
 import matplotlib.pyplot as plt
 from functools import partial
 
 import optax 
 
 
-class HeatTransferProblem(): 
+class HE_FDM(): 
 
-    def __init__(self):
-        self.Nx = 40
-        self.Nt = 4000
-        self.heat_cond_coeff = 0.1
-        self.dt = 40./self.Nt
-        self.dx = 2./(self.Nx-1)
+    def __init__(self, Lx, Nx, Lt, Nt , heat_cond_coeff):
+        self.Nx = Nx
+        self.Nt = Nt
+        self.Lx = Lx
+        self.Lt = Lt
+        self.heat_cond_coeff = heat_cond_coeff
+        self.dt = Lt/Nt
+        self.dx = Lx/Nx
+        self.x = jnp.linspace(-Lx/2,Lx/2,Nx)
+        self.t = jnp.linspace(0,Lt,Nt)
+        self.A_mat =  self.set_A_mat()
 
-        self.x = jnp.linspace(-1,1,self.Nx)
-        self.t = jnp.linspace(0,1,self.Nt)
+        try:
+            cfl = calculate_cfl(self.dx, self.dt, self.heat_cond_coeff)
+            assert  cfl < 0.5
+        except AssertionError:
+            print(f"CFL condition not satisfied: CFL = {cfl}")
+            exit()
 
-    
+    def set_A_mat(self):
+        A_mat = jnp.diag(jnp.ones(self.Nx-1),1) - 2*jnp.diag(jnp.ones( self.Nx),0) + jnp.diag(jnp.ones(self.Nx-1),-1)
+        A_mat.at[0,:].set(0)
+        A_mat.at[-1,:].set(0)
+        return A_mat
 
     def define_source(self, source):
         self.source = source
 
-    def run_heat_simulation(self):
-        temperatures = jnp.ones((self.Nt,self.Nx))
-
-        def body_function(i,temperature_array, source, dt, heat_cond_coeff):
-            temperature_array = temperature_array.at[i,:].set(heat_eq_step(temperature_array[i-1,:], source ,dt, heat_cond_coeff))
-            return temperature_array
+    def __call__(self, temperature,source):
+        temperature = temperature +self.dt *self.heat_cond_coeff * self.A_mat @ temperature +self.dt * source
+        return temperature
         
-        partial_body_function = partial(body_function, source=self.source, dt=self.dt, heat_cond_coeff=self.heat_cond_coeff)
-
-        temperatures = jax.lax.fori_loop(1, self.Nt, partial_body_function, temperatures)
-        return temperatures
-    
-
-def heat_eq_step(temperature, source,dt, heat_cond_coeff):
-    Nx = temperature.shape[0]
-    A_mat = jnp.diag(jnp.ones(Nx-1),1) - 2*jnp.diag(jnp.ones(Nx),0) + jnp.diag(jnp.ones(Nx-1),-1)
-    A_mat.at[0,:].set(0)
-    A_mat.at[-1,:].set(0)
-    temperature = temperature +dt *heat_cond_coeff * A_mat @ temperature +dt * source
-    return temperature
-
 def main():
     
-    heat_transfer_problem = HeatTransferProblem()
-    source_function = lambda x : 100* jnp.exp(-x**2/0.3)
-    heat_transfer_problem.define_source(vmap(source_function)(heat_transfer_problem.x))
+    Lx = 2.
+    Nx = 100
+    Lt = 20
+    Nt = 11000
+    heat_cond_coeff = 0.1
 
-    print("CFL: ", calculate_cfl(2./heat_transfer_problem.Nx, heat_transfer_problem.dt, heat_transfer_problem.heat_cond_coeff))
+    ref_he_fdm = HE_FDM(Lx, Nx, Lt,Nt, heat_cond_coeff)
+  
+    source_function = lambda x,t : jnp.exp(-(x+(t-1)/20)**2/0.3)
+    meshgrid = jnp.meshgrid(ref_he_fdm.x, ref_he_fdm.t)
+    source = source_function(meshgrid[0], meshgrid[1])
+    plot_heatmap(source, ref_he_fdm)
+    T_0 = jnp.ones((Nx,))
 
+    def rollout(stepper_fn):
+        def scan_fn(T, source):
+            T_next = stepper_fn(T,source)
+            return T_next, T_next
+        
+        def rollout_fn(source):
+            _, trj = jax.lax.scan(scan_fn,T_0,source,length=stepper_fn.Nt)
+            return trj
+        
+        return rollout_fn
+    
     start = time.time()
-
-    reference_temperatures = heat_transfer_problem.run_heat_simulation()
-
+    trj = rollout(ref_he_fdm)(source)
     end = time.time()
-
     print("time: ", end-start)
 
+    plot_heatmap(trj, ref_he_fdm)
 
 if __name__ == "__main__":
     main()
