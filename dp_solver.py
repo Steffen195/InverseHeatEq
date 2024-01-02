@@ -79,7 +79,7 @@ def create_2nd_der_matrix(Nx):
     central_diff_matrix[0,:]= 0
     central_diff_matrix[-1,:]= 0
     return central_diff_matrix
-0
+
 def CN2_lhs_rhs_creation(Nx):
     central_diff_matrix = create_2nd_der_matrix(Nx)
 
@@ -155,8 +155,8 @@ final_test_trj = rollout_fn(source=params[0])
 
 temperature_plot = plot_ref_and_test_heatmap(ref_trj,final_test_trj,Lt,Lx,x,test_case)
 source_plot = plot_ref__initial_and_test_heatmap(ref_source,initial_source,params[0],Lt,Lx,x,test_case)
-source_plot.savefig(f"{test_case}_source.png")
-temperature_plot.savefig(f"{test_case}_temperature.png")
+source_plot.savefig(f"./figures/{test_case}_source.png")
+temperature_plot.savefig(f"./figures/{test_case}_temperature.png")
 
 initial_source_loss = jnp.linalg.norm(initial_source-ref_source)
 final_source_loss = jnp.linalg.norm(params[0]-ref_source)
