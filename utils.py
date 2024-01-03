@@ -4,7 +4,7 @@ import numpy as np
 
 plt.rcParams['text.usetex'] = True
 plt.rcParams['font.family'] = 'serif'
-plt.rcParams["font.size"] = 12
+plt.rcParams["font.size"] = 20
 
 def calculate_cfl(DX, DT, heat_cond_coeff):
     return DT * heat_cond_coeff / (DX**2)
@@ -33,7 +33,7 @@ def plot_ref_and_test_heatmap(trj_ref,trj_test,Lt,Lx,x,test_case):
     Tmin = np.min([trj_ref,trj_test])
 
     fig, axes = plt.subplots(1,2,figsize=(22, 5),layout = "compressed")
-    fig.suptitle(f"Temperature for {test_case} Source")
+    #fig.suptitle(f"Temperature for {test_case} Source")
     axes[0].imshow(
         trj_ref.T,
         cmap="hot",
@@ -44,7 +44,7 @@ def plot_ref_and_test_heatmap(trj_ref,trj_test,Lt,Lx,x,test_case):
         vmax = Tmax
 
     )
-    axes[0].set_title("Reference solution")
+    axes[0].set_title("Reference Solution")
     axes[0].set_xlabel("Time")
     axes[0].set_ylabel("Space")
     im = axes[1].imshow(
@@ -56,7 +56,7 @@ def plot_ref_and_test_heatmap(trj_ref,trj_test,Lt,Lx,x,test_case):
         vmin = Tmin,
         vmax = Tmax
     )
-    axes[1].set_title("Test solution")
+    axes[1].set_title("Test Solution")
     axes[1].set_xlabel("Time")
     axes[1].set_ylabel("Space")
     fig.colorbar(im, ax=axes.ravel().tolist())
@@ -66,12 +66,12 @@ def plot_ref_and_test_heatmap(trj_ref,trj_test,Lt,Lx,x,test_case):
 
 
 
-def plot_ref__initial_and_test_heatmap(trj_ref,trj_ini,trj_test,Lt,Lx,x,test_case):
+def plot_ref_initial_and_test_heatmap(trj_ref,trj_ini,trj_test,Lt,Lx,x,test_case):
     
     Tmax = np.max([trj_ref,trj_ini,trj_test])
     Tmin = np.min([trj_ref,trj_ini,trj_test])
     fig, axes = plt.subplots(1,3,figsize=(22, 5),layout = "compressed")
-    fig.suptitle(f"Heat source for {test_case} Source")
+    #fig.suptitle(f"Heat source for {test_case} Source")
     axes[0].imshow(
         trj_ref.T,
         cmap="hot",
@@ -81,7 +81,7 @@ def plot_ref__initial_and_test_heatmap(trj_ref,trj_ini,trj_test,Lt,Lx,x,test_cas
         vmin = Tmin,
         vmax = Tmax
     )
-    axes[0].set_title("Reference solution")
+    axes[0].set_title("Reference Solution")
     axes[0].set_xlabel("Time")
     axes[0].set_ylabel("Space")
     axes[1].imshow(
@@ -106,7 +106,7 @@ def plot_ref__initial_and_test_heatmap(trj_ref,trj_ini,trj_test,Lt,Lx,x,test_cas
         vmin = Tmin,
         vmax = Tmax,
     )
-    axes[2].set_title("Test solution")
+    axes[2].set_title("Test Solution")
     axes[2].set_xlabel("Time")
     axes[2].set_ylabel("Space")
 

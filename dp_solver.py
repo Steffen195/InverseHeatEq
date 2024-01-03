@@ -4,7 +4,7 @@ import numpy as np
 import jax
 import jax.numpy as jnp
 
-from utils import plot_heatmap, plot_ref_and_test_heatmap, plot_ref__initial_and_test_heatmap
+from utils import plot_heatmap, plot_ref_and_test_heatmap, plot_ref_initial_and_test_heatmap
 from functools import partial
 
 import optax
@@ -24,7 +24,7 @@ optimstep = 500
 learning_rate = 0.005
 #transition_steps = 500
 #decay_rate = 0.2
-number_sensors = 10
+number_sensors = 20
 
 W_and_B_Tracking = False
 
@@ -45,13 +45,13 @@ t = np.linspace(0,Lt,Nt)
 T_0_function = lambda x: 0*x+1
 T_0 = T_0_function(x)
 
-test_case = "Gaussian-"
+test_case = "Gaussian"
 if test_case == "Constant":
     ref_source_function = lambda x,t : 3+0*x
+elif test_case == "Piecewise":
+    ref_source_function = lambda x,t: 1. if(x>-0.3 and x<0.3) else 0. 
 elif test_case == "Gaussian":
     ref_source_function = lambda x,t: np.exp(-(x-0.25*np.sin(t*4))**2/0.3)
-elif test_case == "Uniform":
-    ref_source_function = lambda x,t: 1. if(x>-0.3 and x<0.3) else 0. 
 else:
     raise(ValueError("Please input a valid test case name"))
 
@@ -154,7 +154,7 @@ initial_test_trj = rollout_fn(initial_source)
 final_test_trj = rollout_fn(source=params[0])
 
 temperature_plot = plot_ref_and_test_heatmap(ref_trj,final_test_trj,Lt,Lx,x,test_case)
-source_plot = plot_ref__initial_and_test_heatmap(ref_source,initial_source,params[0],Lt,Lx,x,test_case)
+source_plot = plot_ref_and_test_heatmap(ref_source,params[0],Lt,Lx,x,test_case)
 source_plot.savefig(f"./figures/{test_case}_source.png")
 temperature_plot.savefig(f"./figures/{test_case}_temperature.png")
 
