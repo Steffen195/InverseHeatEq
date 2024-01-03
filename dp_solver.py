@@ -131,7 +131,7 @@ def loss_fun(params,ref_sensor_trj):
     loss += jnp.linalg.norm(ref_sensor_trj-curr_test_sensor_trj)
     return loss
     
-schedule = optax.exponential_decay(learning_rate, transition_steps= transition_steps, decay_rate=decay_rate, staircase=True)
+#schedule = optax.exponential_decay(learning_rate, transition_steps= transition_steps, decay_rate=decay_rate, staircase=True)
 
 optimizer = optax.adam(learning_rate=learning_rate)
 source =  jnp.ones_like(ref_source)
